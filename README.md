@@ -16,8 +16,11 @@
 - **📉 Risk Analytics**:
   - **Beta**: Measures stock volatility relative to the S&P 500 (SPY).
   - **VaR (Value at Risk)**: Calculates 95% Historical VaR to estimate potential losses.
+  - **Portfolio Simulation**: Build custom portfolios and analyze combined risk.
+  - **Technical Indicators**: RSI and SMA (50/200) overlays.
 - **🏦 Economic Insights**: Correlates daily stock returns with 10-Year Treasury Rates (fetched from FRED).
 - **💾 Local Storage**: Efficiently stores cleaned and normalized data in a local SQLite database.
+- **🤖 Automation**: GitHub Actions workflow updates data daily at 6 AM UTC.
 
 ## 🛠️ Tech Stack
 
