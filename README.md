@@ -104,3 +104,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+## 🙏 Acknowledgments
+
+This project was built with the assistance of **Antigravity**, an advanced AI coding assistant by Google DeepMind.
