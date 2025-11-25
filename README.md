@@ -5,7 +5,17 @@
 ![SQLite](https://img.shields.io/badge/Database-SQLite-003B57)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-**Alpha-Seeker** is a local financial dashboard designed to provide insights into stock market performance and risk metrics. It ingests daily stock data and economic indicators to visualize price history, calculate risk metrics like Beta and VaR, and analyze market correlations.
+**Alpha-Seeker** is a local financial dashboard designed to provide insights into stock market performance and riskA powerful local financial dashboard built with Python, SQLite, and Streamlit. It ingests daily stock and economic data, calculates risk metrics (VaR, Beta), and visualizes market trends with interactive charts.
+
+## 📸 Screenshots
+
+### Dashboard Overview
+
+![Dashboard Overview](assets/dashboard_overview.png)
+
+### Portfolio Builder
+
+![Portfolio Builder](assets/portfolio_builder.png)
 
 ---
 
