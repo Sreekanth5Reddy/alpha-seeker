@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import sqlalchemy
-from analytics import calculate_var, calculate_beta, calculate_rsi, calculate_sma, calculate_portfolio_risk
+from analytics import calculate_var, calculate_beta, calculate_rsi, calculate_sma, calculate_portfolio_risk, forecast_price
 import datetime
 
 # Configuration
@@ -45,13 +45,32 @@ def get_market_data_for_scatter(ticker):
     df_merged = pd.merge(df_stock, df_eco, on='date', how='inner').dropna()
     return df_merged
 
+@st.cache_data
+def get_sector_performance():
+    engine = sqlalchemy.create_engine(DATABASE_URL)
+    query = """
+        SELECT s.sector, p.date, p.close_price
+        FROM fact_price_daily p
+        JOIN dim_stock s ON p.ticker = s.ticker
+        WHERE p.date >= date('now', '-30 days')
+    """
+    df = pd.read_sql(query, engine)
+    df['date'] = pd.to_datetime(df['date'])
+    
+    # Calculate returns
+    df['return'] = df.groupby('sector')['close_price'].pct_change()
+    
+    # Average daily return by sector
+    sector_perf = df.groupby('sector')['return'].mean().reset_index()
+    return sector_perf
+
 # Sidebar
 st.sidebar.title("Alpha-Seeker")
 st.sidebar.markdown("---")
 st.sidebar.info("Navigate using the tabs below.")
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["📈 Stock Analysis", "💼 Portfolio Builder", "💾 Data Management"])
+tab1, tab2, tab3, tab4 = st.tabs(["📈 Stock Analysis", "💼 Portfolio Builder", "🤖 AI Forecast", "💾 Data Management"])
 
 # --- TAB 1: STOCK ANALYSIS ---
 with tab1:
@@ -129,6 +148,17 @@ with tab1:
                 mime='text/csv',
             )
 
+    # Sector Heatmap
+    st.markdown("---")
+    st.subheader("Sector Performance (Last 30 Days)")
+    try:
+        df_sector = get_sector_performance()
+        if not df_sector.empty:
+            fig_sector = px.bar(df_sector, x='sector', y='return', color='return', color_continuous_scale='RdYlGn', title="Avg Daily Return by Sector")
+            st.plotly_chart(fig_sector, use_container_width=True)
+    except Exception as e:
+        st.write("Sector data unavailable.")
+
 # --- TAB 2: PORTFOLIO BUILDER ---
 with tab2:
     st.header("Portfolio Simulator")
@@ -166,8 +196,49 @@ with tab2:
         else:
             st.warning("Total weight must be greater than 0.")
 
-# --- TAB 3: DATA MANAGEMENT ---
+# --- TAB 3: AI FORECAST ---
 with tab3:
+    st.header("🤖 AI Price Prediction")
+    st.write("Forecast future stock prices using **Facebook Prophet**.")
+    
+    ai_ticker = st.selectbox("Select Asset for Forecast", get_tickers(), key="ai_ticker")
+    days = st.slider("Forecast Horizon (Days)", 7, 365, 30)
+    
+    if st.button("Generate Forecast"):
+        with st.spinner(f"Training Prophet model for {ai_ticker}..."):
+            try:
+                forecast = forecast_price(ai_ticker, days)
+                
+                # Plot
+                fig_ai = go.Figure()
+                
+                # Historical Data (Last 180 days for context)
+                df_hist = get_stock_history(ai_ticker)
+                df_hist_recent = df_hist[df_hist['date'] > (pd.Timestamp.now() - pd.Timedelta(days=180))]
+                fig_ai.add_trace(go.Scatter(x=df_hist_recent['date'], y=df_hist_recent['close_price'], mode='lines', name='Historical'))
+                
+                # Forecast
+                fig_ai.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Forecast', line=dict(color='orange')))
+                
+                # Confidence Interval
+                fig_ai.add_trace(go.Scatter(
+                    x=pd.concat([forecast['ds'], forecast['ds'][::-1]]),
+                    y=pd.concat([forecast['yhat_upper'], forecast['yhat_lower'][::-1]]),
+                    fill='toself',
+                    fillcolor='rgba(255, 165, 0, 0.2)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    name='Confidence Interval'
+                ))
+                
+                fig_ai.update_layout(title=f"{ai_ticker} Price Forecast ({days} Days)", xaxis_title="Date", yaxis_title="Price")
+                st.plotly_chart(fig_ai, use_container_width=True)
+                
+                st.success("Forecast generated successfully!")
+            except Exception as e:
+                st.error(f"Error generating forecast: {e}")
+
+# --- TAB 4: DATA MANAGEMENT ---
+with tab4:
     st.header("Data Management")
     
     if st.button("🔄 Refresh Data (Run ETL)"):

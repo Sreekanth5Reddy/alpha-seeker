@@ -8,8 +8,8 @@ import time
 
 # Configuration
 DATABASE_URL = "sqlite:///market.db"
-# Added SPY for Beta calculation
-TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'JPM', 'SPY']
+# Added SPY for Beta calculation, and Crypto
+TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'JPM', 'SPY', 'BTC-USD', 'ETH-USD']
 START_DATE = (
     datetime.date.today() -
     datetime.timedelta(
@@ -122,7 +122,9 @@ def load_data(engine):
             {'ticker': 'MSFT', 'company_name': 'Microsoft Corp.', 'sector': 'Technology'},
             {'ticker': 'GOOGL', 'company_name': 'Alphabet Inc.', 'sector': 'Technology'},
             {'ticker': 'JPM', 'company_name': 'JPMorgan Chase & Co.', 'sector': 'Financials'},
-            {'ticker': 'SPY', 'company_name': 'SPDR S&P 500 ETF Trust', 'sector': 'ETF'}
+            {'ticker': 'SPY', 'company_name': 'SPDR S&P 500 ETF Trust', 'sector': 'ETF'},
+            {'ticker': 'BTC-USD', 'company_name': 'Bitcoin', 'sector': 'Crypto'},
+            {'ticker': 'ETH-USD', 'company_name': 'Ethereum', 'sector': 'Crypto'}
         ]
 
         print("Loading dim_stock...")

@@ -163,3 +163,26 @@ if __name__ == "__main__":
         print(f"Portfolio VaR: {port_res['VaR_95']}")
         print(f"Portfolio Beta: {port_res['Beta']}")
 
+def forecast_price(ticker, days=30):
+    """
+    Forecast future prices using Prophet.
+    Returns DataFrame with ds, yhat, yhat_lower, yhat_upper.
+    """
+    from prophet import Prophet
+    
+    df = get_data(ticker).reset_index()
+    # Prophet requires columns 'ds' and 'y'
+    df_prophet = df[['date', 'close_price']].rename(columns={'date': 'ds', 'close_price': 'y'})
+    
+    # Remove timezone if present
+    if df_prophet['ds'].dt.tz is not None:
+        df_prophet['ds'] = df_prophet['ds'].dt.tz_localize(None)
+
+    m = Prophet(daily_seasonality=True)
+    m.fit(df_prophet)
+    
+    future = m.make_future_dataframe(periods=days)
+    forecast = m.predict(future)
+    
+    return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+
